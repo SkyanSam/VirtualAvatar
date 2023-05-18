@@ -13,7 +13,7 @@ def normalize(arr):
     return arr / np.linalg.norm(arr)
 
 
-with mp_holistic.Holistic(min_detection_confidence=0.5, min_tracking_confidence=0.5) as holistic:
+with mp_holistic.Holistic(min_detection_confidence=0.5, min_tracking_confidence=0.5, refine_face_landmarks=True) as holistic:
     while True:
         ret, frame = cap.read()
         if not ret:
@@ -21,6 +21,8 @@ with mp_holistic.Holistic(min_detection_confidence=0.5, min_tracking_confidence=
         image = cv.cvtColor(frame, cv.COLOR_BGR2RGB)
         results = holistic.process(image)
         #mp_drawing.draw_landmarks(frame, results.pose_landmarks, mp_holistic.POSE_CONNECTIONS)
+        #mp_drawing.draw_landmarks(frame, results.left_hand_landmarks, mp_holistic.HAND_CONNECTIONS) # Draw left hand connections
+        #mp_drawing.draw_landmarks(frame, results.right_hand_landmarks, mp_holistic.HAND_CONNECTIONS)
         #mp_drawing.draw_landmarks(frame, results.face_landmarks, mp.solutions.face_mesh.FACEMESH_TESSELATION)
 
         
@@ -72,6 +74,19 @@ with mp_holistic.Holistic(min_detection_confidence=0.5, min_tracking_confidence=
             face_y_angle = np.arccos(np.dot(normalize(np.array([face_x_axis[0], 0, face_x_axis[2]])), np.array([1,0,0]))) * (180 / np.pi)
             face_z_angle_x_axis = np.arccos(np.dot(normalize(np.array([face_x_axis[0], face_x_axis[1], 0])), np.array([1,0,0]))) * (180 / np.pi)
             face_z_angle_y_axis = np.arccos(np.dot(normalize(np.array([face_y_axis[0], face_y_axis[1], 0])), np.array([0,1,0]))) * (180 / np.pi)
+            
+            # Iris Tracking
+            img_w = frame.shape[1]
+            img_h = frame.shape[0]
+            mesh_pts = np.array([np.multiply([p.x,p.y], [img_w, img_h]).astype(int) for p in results.face_landmarks.landmark])
+            #(left_iris_cx, left_iris_cy), left_iris_radius = cv.minEnclosingCircle(mesh_pts[[160,159,158,157,154,153,145,144]])
+            #(right_iris_cx, right_iris_cy), right_iris_radius = cv.minEnclosingCircle(mesh_pts[[384,385,386,387,373,374,380,381]])
+            (left_iris_cx, left_iris_cy), left_iris_radius = cv.minEnclosingCircle(mesh_pts[[474,475, 476, 477]])
+            (right_iris_cx, right_iris_cy), right_iris_radius = cv.minEnclosingCircle(mesh_pts[[469, 470, 471, 472]])
+            iris_left_pos = np.array([left_iris_cx, left_iris_cy], dtype=np.int32)
+            iris_right_pos = np.array([right_iris_cx, right_iris_cy], dtype=np.int32)
+            cv.circle(frame, iris_left_pos, int(left_iris_radius), (255,0,255), 1, cv.LINE_AA)
+            cv.circle(frame, iris_right_pos, int(right_iris_radius), (255,255,0), 1, cv.LINE_AA)
             
             # Data Output
             print("Torso Angle : " + str(int(shoulder_angle)) + ", Face X: " + str(int(face_x_angle)) + ", Face Y: " + str(int(face_y_angle)) + ", Face Z (X): " + str(int(face_z_angle_x_axis)) + ", Face Z (Y): " + str(int(face_z_angle_y_axis)))
