@@ -88,8 +88,11 @@ with mp_holistic.Holistic(min_detection_confidence=0.5, min_tracking_confidence=
             cv.circle(frame, iris_left_pos, int(left_iris_radius), (255,0,255), 1, cv.LINE_AA)
             cv.circle(frame, iris_right_pos, int(right_iris_radius), (255,255,0), 1, cv.LINE_AA)
             
+            mouth_pts = mesh_pts[[80, 88, 310, 318]]
+            mouth_x = abs(mouth_pts[0][0] - mouth_pts[2][0])
+            mouth_y = abs(mesh_pts[13][1] - mesh_pts[14][1])
             # Data Output
-            print("Torso Angle : " + str(int(shoulder_angle)) + ", Face X: " + str(int(face_x_angle)) + ", Face Y: " + str(int(face_y_angle)) + ", Face Z (X): " + str(int(face_z_angle_x_axis)) + ", Face Z (Y): " + str(int(face_z_angle_y_axis)))
+            print("Mouth X: " + str(mouth_x) + ", Mouth Y: " + str(mouth_y) + ",Torso Angle : " + str(int(shoulder_angle)) + ", Face X: " + str(int(face_x_angle)) + ", Face Y: " + str(int(face_y_angle)) + ", Face Z (X): " + str(int(face_z_angle_x_axis)) + ", Face Z (Y): " + str(int(face_z_angle_y_axis)))
             
             """rotation_debug.reset_image()
             rotation_debug.draw_lines((0,100), tuple((normalize(np.array([face_y_axis[1], face_x_axis[2]])) * 100).astype(int)), offsetX = 100)
