@@ -1,0 +1,56 @@
+import glfw
+from OpenGL.GL import *
+import numpy as np
+
+# Debug callback function
+def glDebugMessageCallback2(source, type, id, severity, length, message, userParam):
+    print(f"OpenGL Debug Message: {message.decode()}")
+
+def main():
+    # Initialize GLFW
+    if not glfw.init():
+        return
+
+    # Create a window
+    window = glfw.create_window(400, 400, "OpenGL Debug", None, None)
+    if not window:
+        glfw.terminate()
+        return
+
+    # Set the current context
+    glfw.make_context_current(window)
+
+    # Enable debug output
+    glEnable(GL_DEBUG_OUTPUT)
+    glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS)
+    glDebugMessageCallback(GLDEBUGPROC(glDebugMessageCallback2), GLint(0))
+
+    # Set the clear color
+    glClearColor(0.0, 0.0, 0.0, 1.0)
+
+    # Main loop
+    while not glfw.window_should_close(window):
+        # Clear the buffer
+        glClear(GL_COLOR_BUFFER_BIT)
+
+
+        # Draw a triangle
+        glBegin(GL_TRIANGLES)
+        glColor3f(1.0, 0.0, 0.0)
+        glVertex2f(-0.5, -0.5)
+        glVertex2f(0.5, -0.5)
+        glVertex2f(0.0, 0.5)
+        glEnd()
+        
+        vertices = np.array([-1.0,-1.0,1.0,1.0], dtype=np.float32)
+        glBufferData(GL_ARRAY_BUFFER, vertices.nbytes, vertices, GL_STATIC_DRAW)
+
+        # Swap buffers and poll events
+        glfw.swap_buffers(window)
+        glfw.poll_events()
+
+    # Terminate GLFW
+    glfw.terminate()
+
+if __name__ == '__main__':
+    main()

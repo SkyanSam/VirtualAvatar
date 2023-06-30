@@ -1,0 +1,173 @@
+from scipy.interpolate import interp1d
+import numpy as np
+import glfw
+from OpenGL.GL import *
+from OpenGL import GL as gl
+from OpenGL.GL import shaders
+import texture
+import tests_gldebug
+
+# REPLACE VERTICES/INDICES WITH VALUES YOU KNOW WILL WORK
+# TO PREVENT ERRORS DO NOT HARDSET SIZE/PTR VARIABLES AND INSTEAD USE SOMETH LIKE val.nbytes
+# KEEP VERTICE CODE BUT LAST MINUTE SET INDICE VERTICE TO SOMETH ELSE
+
+# GL INIT
+
+is_checking_errors = True
+def opengl_error_check():
+    error = glGetError()
+    if error != GL_NO_ERROR:
+        #print("OPENGL_ERROR: ", gluErrorString(error))
+        print("OPENGL_ERROR: " + error)
+    else:
+        print("NO ERROR")
+
+def glCall(func, *args, **kwargs):
+    function_error_checked = False
+    value = None
+    if is_checking_errors:
+        while glGetError() != GL_NO_ERROR:
+            """"""
+    value = func(*args, **kwargs)
+    """try:
+        value = func(*args, **kwargs)
+    except Exception as inst:
+        print("EXCEPTION! ", inst)
+        if is_checking_errors and (not function_error_checked):
+            function_error_checked = True
+            print("GL ERROR " + str(glGetError()))"""
+
+    if is_checking_errors and (not function_error_checked):
+        function_error_checked = True
+        print("GL ERROR " + str(glGetError()))
+        #opengl_error_check()
+    return value
+
+glfw.init()
+gl_window = glfw.create_window(1280, 720, "Virtual Avatar Output", None, None)
+
+if not gl_window:
+    glfw.terminate()
+    raise Exception("glfw window cannot be created")
+
+glfw.set_window_pos(gl_window, 400, 200)
+glfw.make_context_current(gl_window)
+
+glCall(glClearColor,0,0.5,0.5,1)
+# END GL INIT
+
+print(glGetString(GL_VERSION))
+
+vs_shader_src = open("shaders/facedeformv.glsl", "r").read()
+fs_shader_src = open("shaders/facedeformf.glsl", "r").read()
+program_id = shaders.compileProgram(
+    shaders.compileShader(vs_shader_src, GL_VERTEX_SHADER),
+    shaders.compileShader(fs_shader_src, GL_FRAGMENT_SHADER),
+    validate=False
+)
+glCall(glUseProgram,program_id)
+
+texture.read_texture("skyansam.png") #Handles gl stuff (unsure if i need uniform1i?)
+
+
+# START GENERATION CODE
+
+p2scale = np.array([0, 1.0])
+p4scale = np.array([0, 0.33, 0.66, 1.0])
+topLineLerpX = interp1d(p4scale, [72.0 / 400.0, 160.0 / 400.0, 245.0 / 400.0, 330.0 / 400.0], kind='linear')
+topLineLerpY = interp1d(p4scale, [14.0 / 400.0, 14.0 / 400.0, 14.0 / 400.0, 14.0 / 400.0], kind='linear')
+bottomLineLerpX = interp1d(p4scale, [53.0 / 400.0, 151.0 / 400.0, 251.0 / 400.0, 352.0 / 400.0], kind='linear')
+bottomLineLerpY = interp1d(p4scale, [370.0 / 400.0, 332.0 / 400.0, 332.0 / 400.0, 370.0 / 400.0], kind='linear')
+
+vertices = []
+
+for y in range(0, 9):
+    for x in range(0, 9):
+        tX = float(x) / 8.0
+        tY = float(y) / 8.0
+        topLineX = topLineLerpX(tX)
+        topLineY = topLineLerpY(tX)
+        bottomLineX = bottomLineLerpX(tX)
+        bottomLineY = bottomLineLerpY(tX)
+        ptX = interp1d(p2scale, [bottomLineX, topLineX], kind='linear')(tY)
+        ptY = interp1d(p2scale, [bottomLineY, topLineY], kind='linear')(tY)
+        vertices.append(float(ptX))
+        vertices.append(float(ptY))
+        vertices.append(tX)
+        vertices.append(tY)
+
+def get_index(x, y):
+    return (y * 8) + x
+
+indices = []
+
+for x in range(0, 8):
+    for y in range(0, 8):
+        A = get_index(x,y)
+        B = get_index(x+1,y)
+        C = get_index(x+1,y+1)
+        D = get_index(x,y+1)
+        indices.append(A)
+        indices.append(C)
+        indices.append(D)
+        indices.append(A)
+        indices.append(B)
+        indices.append(C)
+
+
+# REPLACE CODE
+vertices = [-1.0, -1.0,
+        1.0, -1.0,
+        1.0, 1.0,
+        -1.0, -1.0,
+        -1.0, 1.0,
+        1.0, 1.0]
+
+indices = [1,2,3,4,5,6]
+
+# END REPLACEMENT
+
+
+vertices = np.array(vertices, dtype=np.float32)
+indices = np.array(indices, dtype=np.uint32)
+
+# END GENERATION CODE
+
+print("-- BEGIN BUFFER CREATION --")
+#vbo = 0
+#glCall(glGenBuffers,1,vbo)
+vbo = glGenBuffers(1)
+print(vbo)
+glCall(glBindBuffer,GL_ARRAY_BUFFER,vbo)
+glCall(glBufferData,GL_ARRAY_BUFFER, vertices.nbytes, vertices, GL_DYNAMIC_DRAW) # USE GL_DYNAMIC_DRAW!!
+
+pos_attr = glGetAttribLocation(program_id, 'position')
+glCall(glEnableVertexAttribArray,pos_attr)
+glCall(glVertexAttribPointer,pos_attr, 2, GL_FLOAT, GL_FALSE, 0, 0) # revise?
+
+#uv_attr = 1
+#glCall(glEnableVertexAttribArray,uv_attr)
+#glCall(glVertexAttribPointer,uv_attr, 2, GL_FLOAT, GL_FALSE, 0, 0) # revise?
+
+#ibo = 0
+#glCall(glGenBuffers,1,ibo)
+ibo = glGenBuffers(1)
+print(ibo)
+glCall(glBindBuffer,GL_ELEMENT_ARRAY_BUFFER, ibo)
+glCall(glBufferData,GL_ELEMENT_ARRAY_BUFFER, indices.nbytes, indices, GL_DYNAMIC_DRAW)
+
+while not glfw.window_should_close(gl_window):
+    print("-- BEGIN FRAME --")
+
+    glCall(glClear,GL_COLOR_BUFFER_BIT)
+
+    glCall(glDisable,GL_CULL_FACE)
+
+    iResolution_id = glCall(glGetUniformLocation,program_id, "iResolution")
+    glCall(glUniform2f,iResolution_id, 1280, 720)
+
+    #glCall(glDrawElements,GL_TRIANGLES, indices.size, GL_UNSIGNED_INT, None)
+    glCall(glDrawArrays,GL_TRIANGLES, 0, 6)
+
+    glfw.swap_buffers(gl_window)
+    glfw.poll_events()
