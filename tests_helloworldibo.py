@@ -3,6 +3,10 @@ from OpenGL.GL import *
 from OpenGL.GL.shaders import compileShader, compileProgram
 import numpy as np
 from scipy.interpolate import interp1d
+from scipy.interpolate import CubicSpline
+import texture
+
+# CHANGE TO DYNAMIC DRAW AT SOME POINTT
 
 is_checking_errors = True
 def glCall(func, *args, **kwargs):
@@ -26,27 +30,6 @@ def glCall(func, *args, **kwargs):
         #opengl_error_check()
     return value
 
-# Vertex shader source code
-vertex_shader_source = """
-#version 330 core
-layout (location = 0) in vec2 a_position;
-
-void main()
-{
-    gl_Position = vec4(a_position, 0.0, 1.0);
-}
-"""
-
-# Fragment shader source code
-fragment_shader_source = """
-#version 330 core
-out vec4 FragColor;
-
-void main()
-{
-    FragColor = vec4(1.0, 0.5, 0.2, 1.0);
-}
-"""
 
 def main():
     # Initialize GLFW
@@ -54,7 +37,7 @@ def main():
         return
 
     # Create a window
-    window = glfw.create_window(800, 600, "Hello World", None, None)
+    window = glfw.create_window(1280, 720, "Hello World", None, None)
     if not window:
         glfw.terminate()
         return
@@ -78,11 +61,21 @@ def main():
     )
     glCall(glUseProgram,shader_program)
     
+
+    textureID = texture.read_texture("skyansam.png")
     # Define the vertices of the triangle
-    vertices = np.array([
-        -0.5, -0.5,  # Bottom left
-        0.5, -0.5,   # Bottom right
-        0.0, 0.5     # Top center
+    
+
+    positions = np.array([
+        -1.0, -1.0, # Bottom left
+        1.0, 1.0,  # Bottom right
+        -1.0, 1.0, # Top center
+    ], dtype=np.float32)
+
+    colors = np.array([
+        0.0, 1.0,
+        1.0, 0.0,
+        1.0, 1.0
     ], dtype=np.float32)
 
     # Define the indices of the triangle
@@ -90,16 +83,24 @@ def main():
         0, 1, 2  # Triangle indices
     ], dtype=np.uint32)
 
+    """
     ## BEGIN FACE
 
-    p2scale = np.array([0, 1.0])
-    p4scale = np.array([0, 0.33, 0.66, 1.0])
-    topLineLerpX = interp1d(p4scale, [72.0 / 400.0, 160.0 / 400.0, 245.0 / 400.0, 330.0 / 400.0], kind='linear')
-    topLineLerpY = interp1d(p4scale, [14.0 / 400.0, 14.0 / 400.0, 14.0 / 400.0, 14.0 / 400.0], kind='linear')
-    bottomLineLerpX = interp1d(p4scale, [53.0 / 400.0, 151.0 / 400.0, 251.0 / 400.0, 352.0 / 400.0], kind='linear')
-    bottomLineLerpY = interp1d(p4scale, [370.0 / 400.0, 332.0 / 400.0, 332.0 / 400.0, 370.0 / 400.0], kind='linear')
+    p2scale = [0, 1.0]
+    p4scale = [0, 0.33, 0.66, 1.0]
+    topLineLerpX = CubicSpline(p4scale, [72.0 / 400.0, 160.0 / 400.0, 245.0 / 400.0, 330.0 / 400.0])
+    topLineLerpY = CubicSpline(p4scale, [14.0 / 400.0, 14.0 / 400.0, 14.0 / 400.0, 14.0 / 400.0])
+    bottomLineLerpX = CubicSpline(p4scale, [53.0 / 400.0, 151.0 / 400.0, 251.0 / 400.0, 352.0 / 400.0])
+    bottomLineLerpY = CubicSpline(p4scale, [370.0 / 400.0, 332.0 / 400.0, 332.0 / 400.0, 370.0 / 400.0])
 
-    vertices = []
+    print(72.0/400.0)
+    print(160.0/400.0)
+    print(245.0/400.0)
+
+
+    
+    positions = []
+    colors = []
 
     for y in range(9):
         for x in range(9):
@@ -109,12 +110,12 @@ def main():
             topLineY = topLineLerpY(tX)
             bottomLineX = bottomLineLerpX(tX)
             bottomLineY = bottomLineLerpY(tX)
-            ptX = interp1d(p2scale, [bottomLineX, topLineX], kind='linear')(tY)
-            ptY = interp1d(p2scale, [bottomLineY, topLineY], kind='linear')(tY)
-            vertices.append(float(ptX))
-            vertices.append(float(ptY))
-            vertices.append(tX)
-            vertices.append(tY)
+            ptX = interp1d(p2scale, [bottomLineX, topLineX], kind="linear")(tY)
+            ptY = interp1d(p2scale, [bottomLineY, topLineY], kind="linear")(tY)
+            positions.append(float(ptX))
+            positions.append(float(ptY))
+            colors.append(tX)
+            colors.append(tY)
 
     def get_index(x, y):
         return (y * 8) + x
@@ -136,10 +137,13 @@ def main():
             indices.append(B)
             indices.append(C)
     
-    vertices = np.array(vertices, dtype=np.float32)
+    positions = np.array(positions, dtype=np.float32)
+    colors = np.array(colors, dtype=np.float32)
     indices = np.array(indices, dtype=np.uint32)
 
+
     ## END FACE
+    """
 
     # Create vertex buffer object (VBO) and vertex array object (VAO)
     vbo = glGenBuffers(1)
@@ -150,25 +154,28 @@ def main():
 
     # Bind the VBO and set the vertex data
     glBindBuffer(GL_ARRAY_BUFFER, vbo)
-    glBufferData(GL_ARRAY_BUFFER, vertices.nbytes, vertices, GL_STATIC_DRAW)
+    #glBufferData(GL_ARRAY_BUFFER, positions.nbytes, positions, GL_STATIC_DRAW)
 
     
+    #glBufferData(GL_ARRAY_BUFFER, positions.nbytes + colors.nbytes, np.empty(positions.size + colors.size, dtype=np.float32), GL_STATIC_DRAW)
+    #print("BUF SIZE : ", glGetBufferParameteriv(GL_ARRAY_BUFFER, GL_BUFFER_SIZE))
+    glBufferData(GL_ARRAY_BUFFER, positions.nbytes + colors.nbytes, None, GL_STATIC_DRAW)
+    glBufferSubData(GL_ARRAY_BUFFER, 0, positions.nbytes, positions)
+    glBufferSubData(GL_ARRAY_BUFFER, positions.nbytes, colors.nbytes, colors)
     
+
+    # Specify the vertex attribute pointers
+    glEnableVertexAttribArray(0)
+    glEnableVertexAttribArray(1)
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, ctypes.c_void_p(0)) # stride was 2 * 4
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, ctypes.c_void_p(positions.nbytes)) #
+
+    
+
     # Bind the index buffer
     ebo = glGenBuffers(1)
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo)
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.nbytes, indices, GL_STATIC_DRAW)
-
-    # Specify the vertex attribute pointers
-    #glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * vertices.itemsize, ctypes.c_void_p(0))
-    #glEnableVertexAttribArray(0)
-    pos_attr = glGetAttribLocation(shader_program, 'position')
-    glCall(glEnableVertexAttribArray,pos_attr)
-    glCall(glVertexAttribPointer,pos_attr, 2, GL_FLOAT, GL_FALSE, len(vertices), ctypes.c_void_p(0)) # revise?
-
-    uv_attr = glGetAttribLocation(shader_program, 'color')
-    glCall(glEnableVertexAttribArray,uv_attr)
-    glCall(glVertexAttribPointer,uv_attr, 2, GL_FLOAT, GL_FALSE, len(vertices), ctypes.c_void_p(8)) # revise?
 
     # Unbind the VBO and VAO
     glBindBuffer(GL_ARRAY_BUFFER, 0)
@@ -178,9 +185,10 @@ def main():
     glClearColor(0.2, 0.3, 0.3, 1.0)
 
     # Enable depth testing
-    glEnable(GL_DEPTH_TEST)
+    #glEnable(GL_DEPTH_TEST)
 
-    print(vertices)
+    print(positions)
+    print(colors)
     print(indices)
 
     # Render loop
@@ -192,6 +200,15 @@ def main():
 
         # Use the shader program
         glUseProgram(shader_program)
+
+
+        iResolution_id = glGetUniformLocation(shader_program, "iResolution")
+        glUniform2f(iResolution_id, 1280, 720)
+
+        textureUniformLoc = glGetUniformLocation(shader_program, "iChannel0")
+        glActiveTexture(GL_TEXTURE0)
+        glBindTexture(GL_TEXTURE_2D, textureID)
+        glUniform1i(textureUniformLoc, 0)
 
         # Bind the VAO
         glBindVertexArray(vao)
@@ -207,6 +224,7 @@ def main():
 
         # Poll for and process events
         glfw.poll_events()
+        
 
     # Clean up
     glDeleteProgram(shader_program)
