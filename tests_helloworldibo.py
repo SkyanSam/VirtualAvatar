@@ -5,6 +5,7 @@ import numpy as np
 from scipy.interpolate import interp1d
 from scipy.interpolate import CubicSpline
 import texture
+import lerp
 
 # CHANGE TO DYNAMIC DRAW AT SOME POINTT
 
@@ -83,7 +84,7 @@ def main():
         0, 1, 2  # Triangle indices
     ], dtype=np.uint32)
 
-    """
+    
     ## BEGIN FACE
 
     p2scale = [0, 1.0]
@@ -92,6 +93,26 @@ def main():
     topLineLerpY = CubicSpline(p4scale, [14.0 / 400.0, 14.0 / 400.0, 14.0 / 400.0, 14.0 / 400.0])
     bottomLineLerpX = CubicSpline(p4scale, [53.0 / 400.0, 151.0 / 400.0, 251.0 / 400.0, 352.0 / 400.0])
     bottomLineLerpY = CubicSpline(p4scale, [370.0 / 400.0, 332.0 / 400.0, 332.0 / 400.0, 370.0 / 400.0])
+
+    TL1 = (72.0 / 400.0, 14.0 / 400.0)
+    TL2 = (160.0 / 400.0, 14.0 / 400.0)
+    TL3 = (245.0 / 400.0, 14.0 / 400.0)
+    TL4 = (330.0 / 400.0, 14.0 / 400.0)
+
+    BL1 = (53.0 / 400.0, 370.0 / 400.0)
+    BL2 = (151.0 / 400.0, 332.0 / 400.0)
+    BL3 = (251.0 / 400.0, 332.0 / 400.0)
+    BL4 = (352.0 / 400.0, 370.0 / 400.0)
+
+    TL1_0 = (-0.5, 0.5)
+    TL2_0 = (0.0, 0.5)
+    TL3_0 = (0.5, 0.5)
+
+    BL1_0 = (-0.6, -0.5)
+    BL2_0 = (0.0, -1.0)
+    BL3_0 = (0.6, -0.5)
+
+    print(TL1)
 
     print(72.0/400.0)
     print(160.0/400.0)
@@ -102,18 +123,17 @@ def main():
     positions = []
     colors = []
 
-    for y in range(9):
-        for x in range(9):
+    for y in range(8):
+        for x in range(8):
             tX = float(x) / 8.0
             tY = float(y) / 8.0
-            topLineX = topLineLerpX(tX)
-            topLineY = topLineLerpY(tX)
-            bottomLineX = bottomLineLerpX(tX)
-            bottomLineY = bottomLineLerpY(tX)
-            ptX = interp1d(p2scale, [bottomLineX, topLineX], kind="linear")(tY)
-            ptY = interp1d(p2scale, [bottomLineY, topLineY], kind="linear")(tY)
-            positions.append(float(ptX))
-            positions.append(float(ptY))
+            topLine = lerp.lerp4(TL1, TL2, TL3, TL4, tX)
+            bottomLine = lerp.lerp4(BL1, BL2, BL3, BL4, tX)
+            #topLine = lerp.lerp3(TL1_0, TL2_0, TL3_0, tX)
+            #bottomLine = lerp.lerp3(BL1_0, BL2_0, BL3_0, tX)
+            pt = lerp.lerp2(topLine, bottomLine, tY)
+            positions.append(float(pt[0]))
+            positions.append(float(pt[1]))
             colors.append(tX)
             colors.append(tY)
 
@@ -124,8 +144,8 @@ def main():
 
     # Y = 0, X = 0 - 3 will display, no other triangles display.. Likely something with vertices or index values..
     # check vertices to see if valid, check indices to see if makes sense, check get indices function.. culling should be disabled for now..
-    for y in range(0, 8):
-        for x in range(0, 8):
+    for y in range(7):
+        for x in range(7):
             A = get_index(x,y)
             B = get_index(x+1,y)
             C = get_index(x+1,y+1)
@@ -143,7 +163,7 @@ def main():
 
 
     ## END FACE
-    """
+    
 
     # Create vertex buffer object (VBO) and vertex array object (VAO)
     vbo = glGenBuffers(1)
