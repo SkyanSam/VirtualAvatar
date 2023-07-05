@@ -1,9 +1,14 @@
+import math
 import glfw
 from OpenGL.GL import *
 from OpenGL.GL import shaders
-
+import facedeform
+import time
 global gl_window 
 gl_window = None
+
+face_deform_x = 0.0
+face_deform_y = 0.0
 
 def start():
     global gl_window
@@ -19,13 +24,22 @@ def start():
 
     glClearColor(0,0.5,0.5,1)
 
+    facedeform.start()
+
 def is_window_open():
     return not glfw.window_should_close(gl_window)
 
 def update():
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+    glDisable(GL_CULL_FACE)
+
+    facedeform.face_deform_x = math.sin(time.time())
+    facedeform.face_deform_y = face_deform_y
+    facedeform.update()
+
     glfw.swap_buffers(gl_window)
     glfw.poll_events()
 
-def close():
+def end():
+    facedeform.close()
     glfw.terminate()

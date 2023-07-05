@@ -4,6 +4,8 @@ import numpy as np
 import mediapipe as mp
 import rotation_debug
 
+face_x_angle = 0.0
+
 def start():
     global cap
     global mp_drawing
@@ -18,11 +20,18 @@ def normalize(arr):
     return arr / np.linalg.norm(arr)
 
 def is_window_open():
+    global cap
     return cap.isOpened() and cv.waitKey(1) != ord('q')
 
 def update():
+    global cap
+    global mp_drawing
+    global mp_holistic
+    global holistic
+    global face_x_angle
     ret, frame = cap.read()
     if not ret:
+        print("CV RETURNING not ret")
         return
     
     image = cv.cvtColor(frame, cv.COLOR_BGR2RGB)
@@ -96,7 +105,8 @@ def update():
         mouth_x = abs(mouth_pts[0][0] - mouth_pts[2][0])
         mouth_y = abs(mesh_pts[13][1] - mesh_pts[14][1])
         # Data Output
-        #print("Mouth X: " + str(mouth_x) + ", Mouth Y: " + str(mouth_y) + ",Torso Angle : " + str(int(shoulder_angle)) + ", Face X: " + str(int(face_x_angle)) + ", Face Y: " + str(int(face_y_angle)) + ", Face Z (X): " + str(int(face_z_angle_x_axis)) + ", Face Z (Y): " + str(int(face_z_angle_y_axis)))
+        print("Mouth X: " + str(mouth_x) + ", Mouth Y: " + str(mouth_y) + ",Torso Angle : " + str(int(shoulder_angle)) + ", Face X: " + str(int(face_x_angle)) + ", Face Y: " + str(int(face_y_angle)) + ", Face Z (X): " + str(int(face_z_angle_x_axis)) + ", Face Z (Y): " + str(int(face_z_angle_y_axis)))
+        
         
         rotation_debug.reset_image()
         rotation_debug.draw_lines((0,100), tuple((normalize(np.array([face_y_axis[1], face_x_axis[2]])) * 100).astype(int)), offsetX = 100)
@@ -106,6 +116,8 @@ def update():
         cv.imshow('rotation debug', rotation_debug.image)
         # 
         cv.imshow('img', frame)
+    else:
+        print("no landmarks for cv")
 
 def end():
     cap.release()

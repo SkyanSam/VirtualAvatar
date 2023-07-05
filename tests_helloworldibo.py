@@ -6,6 +6,7 @@ from scipy.interpolate import interp1d
 from scipy.interpolate import CubicSpline
 import texture
 import lerp
+import facedeformsurface
 
 # CHANGE TO DYNAMIC DRAW AT SOME POINTT
 
@@ -94,6 +95,7 @@ def main():
     bottomLineLerpX = CubicSpline(p4scale, [53.0 / 400.0, 151.0 / 400.0, 251.0 / 400.0, 352.0 / 400.0])
     bottomLineLerpY = CubicSpline(p4scale, [370.0 / 400.0, 332.0 / 400.0, 332.0 / 400.0, 370.0 / 400.0])
 
+    """
     TL1 = (72.0 / 400.0, 14.0 / 400.0)
     TL2 = (160.0 / 400.0, 14.0 / 400.0)
     TL3 = (245.0 / 400.0, 14.0 / 400.0)
@@ -111,14 +113,15 @@ def main():
     BL1_0 = (-0.6, -0.5)
     BL2_0 = (0.0, -1.0)
     BL3_0 = (0.6, -0.5)
+    """
 
-    print(TL1)
+    #print(TL1)
 
-    print(72.0/400.0)
-    print(160.0/400.0)
-    print(245.0/400.0)
+    #print(72.0/400.0)
+    #print(160.0/400.0)
+    #print(245.0/400.0)
 
-
+    pts = facedeformsurface.evaluate(-1.0,0.0)
     
     positions = []
     colors = []
@@ -127,10 +130,10 @@ def main():
         for x in range(8):
             tX = float(x) / 8.0
             tY = float(y) / 8.0
-            topLine = lerp.lerp4(TL1, TL2, TL3, TL4, tX)
-            bottomLine = lerp.lerp4(BL1, BL2, BL3, BL4, tX)
-            #topLine = lerp.lerp3(TL1_0, TL2_0, TL3_0, tX)
-            #bottomLine = lerp.lerp3(BL1_0, BL2_0, BL3_0, tX)
+            #topLine = lerp.lerp4(TL1, TL2, TL3, TL4, tX)
+            #bottomLine = lerp.lerp4(BL1, BL2, BL3, BL4, tX)
+            topLine = lerp.lerp3(pts[0], pts[1], pts[2], tX)
+            bottomLine = lerp.lerp3(pts[3], pts[4], pts[5], tX)
             pt = lerp.lerp2(topLine, bottomLine, tY)
             positions.append(float(pt[0]))
             positions.append(float(pt[1]))
@@ -141,7 +144,6 @@ def main():
         return (y * 8) + x
 
     indices = []
-
     # Y = 0, X = 0 - 3 will display, no other triangles display.. Likely something with vertices or index values..
     # check vertices to see if valid, check indices to see if makes sense, check get indices function.. culling should be disabled for now..
     for y in range(7):

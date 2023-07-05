@@ -5,7 +5,7 @@ import mediapipe as mp
 import rotation_debug
 from OpenGL.GL import *
 from OpenGL.GL import shaders
-import facedeform
+import oldfacedeform
 import texture
 
 glfw.init()
@@ -48,7 +48,7 @@ glVertexAttribPointer(position, 3, GL_FLOAT, GL_FALSE, 0, None)
 glEnableVertexAttribArray(position)
 """
 
-facedeform.start()
+oldfacedeform.start()
 glClearColor(0,0.5,0.5,1)
 
 
@@ -156,7 +156,7 @@ with mp_holistic.Holistic(min_detection_confidence=0.5, min_tracking_confidence=
             
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
-            facedeform.update()
+            oldfacedeform.update()
             """glUseProgram(program_id)
             iResolution_id = glGetUniformLocation(program_id, "iResolution")
             glUniform2f(iResolution_id, 1280, 720)
