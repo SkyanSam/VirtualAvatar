@@ -4,6 +4,7 @@ from OpenGL.GL import *
 from OpenGL.GL import shaders
 import facedeform
 import time
+import lerp
 global gl_window 
 gl_window = None
 
@@ -13,7 +14,7 @@ face_deform_y = 0.0
 def start():
     global gl_window
     glfw.init()
-    gl_window = glfw.create_window(1280, 720, "Virtual Avatar Output", None, None)
+    gl_window = glfw.create_window(720, 720, "Virtual Avatar Output", None, None)
 
     if not gl_window:
         glfw.terminate()
@@ -32,9 +33,13 @@ def is_window_open():
 def update():
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
     glDisable(GL_CULL_FACE)
+    #glAlphaFunc()
 
-    facedeform.face_deform_x = math.sin(time.time())
-    facedeform.face_deform_y = face_deform_y
+    facedeform.face_deform_x = lerp.lerp2_1d(facedeform.face_deform_x,face_deform_x,0.5)
+    facedeform.face_deform_y = lerp.lerp2_1d(facedeform.face_deform_y,face_deform_y,0.5)
+
+    #facedeform.face_deform_x = math.sin(time.time())
+    #facedeform.face_deform_y = math.cos(time.time())
     facedeform.update()
 
     glfw.swap_buffers(gl_window)

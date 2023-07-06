@@ -1,6 +1,7 @@
 import computervision
 import computergraphics
 import math
+import clamp
 
 """
 A FEW ISSUES
@@ -22,9 +23,8 @@ computergraphics.start()
 while computervision.is_window_open() and computergraphics.is_window_open():
     computervision.update()
 
-    computergraphics.face_deform_y = computervision.face_x_angle / 20.0
-    if computergraphics.face_deform_y < -1.0: computergraphics.face_deform_x = -1.0
-    elif computergraphics.face_deform_y > 1.0: computergraphics.face_deform_x = 1.0
+    computergraphics.face_deform_y = clamp.clamp(computervision.head_angle_x / 10.0, -1.0, 1.0)
+    computergraphics.face_deform_x = clamp.clamp(computervision.head_angle_y / 20.0, -1.0, 1.0)
 
     computergraphics.update()
     

@@ -1,3 +1,6 @@
+def lerp2_1d(a,b,t):
+    return (b - a) * t + a
+
 def lerp2(a,b,t):
     return ((b[0] - a[0]) * t + a[0], (b[1] - a[1]) * t + a[1])
 

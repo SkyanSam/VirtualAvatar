@@ -60,7 +60,7 @@ def start():
     )
     glUseProgram(shader_program)
     # Import Texture
-    textureID = texture.read_texture("skyansam.png")
+    textureID = texture.read_texture("GawrGuraEdit.png")
     # Generate Vertexes
     positions, colors, indices = generate_points(0.0,0.0)
     # Generate Buffers
@@ -91,7 +91,7 @@ def update():
     glUseProgram(shader_program)
     # Set Uniform Resolution
     iResolution_id = glGetUniformLocation(shader_program, "iResolution")
-    glUniform2f(iResolution_id, 1280, 720)
+    glUniform2f(iResolution_id, 720, 720)
     # Set Uniform Texture
     textureUniformLoc = glGetUniformLocation(shader_program, "iChannel0")
     glActiveTexture(GL_TEXTURE0)

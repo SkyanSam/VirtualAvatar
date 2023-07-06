@@ -4,7 +4,7 @@ def estimate(landmarks, img_w, img_h):
     face_2d = []
     face_3d = []
     for idx, lm in enumerate(landmarks):
-        x,y = int(lm.x * img_w, lm.y * img_h)
+        x,y = int(lm.x * img_w), int(lm.y * img_h)
         face_2d.append([x,y])
         face_3d.append([x,y,lm.z])
     
