@@ -23,7 +23,7 @@ def start():
     glfw.set_window_pos(gl_window, 400, 200)
     glfw.make_context_current(gl_window)
 
-    glClearColor(0,0.5,0.5,1)
+    glClearColor(0,0.05,0.05,1)
 
     facedeform.start()
 

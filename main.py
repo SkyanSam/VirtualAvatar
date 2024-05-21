@@ -20,11 +20,18 @@ Then I will work on making a bone tool
 computervision.start()
 computergraphics.start()
 
+face_deform_y_delta = 0.0
+face_deform_x_delta = 0.0
+
 while computervision.is_window_open() and computergraphics.is_window_open():
     computervision.update()
 
-    computergraphics.face_deform_y = clamp.clamp(computervision.head_angle_x / 10.0, -1.0, 1.0)
-    computergraphics.face_deform_x = clamp.clamp(computervision.head_angle_y / 20.0, -1.0, 1.0)
+    temp_face_deform_y = clamp.clamp(computervision.head_angle_x / 10.0, -1.0, 1.0)
+    temp_face_deform_x = clamp.clamp(computervision.head_angle_y / 20.0, -1.0, 1.0)
+    face_deform_y_delta = temp_face_deform_y - computergraphics.face_deform_y
+    face_deform_x_delta = temp_face_deform_x - computergraphics.face_deform_x
+    computergraphics.face_deform_y = temp_face_deform_y
+    computergraphics.face_deform_x = temp_face_deform_x
 
     computergraphics.update()
     

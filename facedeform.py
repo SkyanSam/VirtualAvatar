@@ -5,7 +5,9 @@ import glfw
 from OpenGL.GL import *
 from OpenGL.GL.shaders import compileShader, compileProgram
 import texture
+import mesh
 
+face_deform_mesh = None
 face_deform_x = 0.0
 face_deform_y = 0.0
 
@@ -49,66 +51,22 @@ def generate_points(x, y):
     return positions, colors, indices
 
 def start():
-    global vbo, vao, ebo, textureID, shader_program
-    # Import Shader
-    vs_shader_src = open("shaders/facedeformv.glsl", "r").read()
-    fs_shader_src = open("shaders/facedeformf.glsl", "r").read()
-    shader_program = compileProgram(
-        compileShader(vs_shader_src, GL_VERTEX_SHADER),
-        compileShader(fs_shader_src, GL_FRAGMENT_SHADER),
-        validate=False
-    )
-    glUseProgram(shader_program)
+    global face_deform_mesh
     # Import Texture
-    textureID = texture.read_texture("GawrGuraEdit.png")
+    textureID = texture.read_texture("GawrGura.png")
     # Generate Vertexes
     positions, colors, indices = generate_points(0.0,0.0)
-    # Generate Buffers
-    vbo = glGenBuffers(1)
-    vao = glGenVertexArrays(1)
-    # Bind VAO and VBO and set vertex data
-    glBindVertexArray(vao)
-    glBindBuffer(GL_ARRAY_BUFFER, vbo)
-    glBufferData(GL_ARRAY_BUFFER, positions.nbytes + colors.nbytes, None, GL_DYNAMIC_DRAW)
-    glBufferSubData(GL_ARRAY_BUFFER, 0, positions.nbytes, positions)
-    glBufferSubData(GL_ARRAY_BUFFER, positions.nbytes, colors.nbytes, colors)
-    # Specify the vertex attribute pointers
-    glEnableVertexAttribArray(0)
-    glEnableVertexAttribArray(1)
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, ctypes.c_void_p(0)) # stride was 2 * 4
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, ctypes.c_void_p(positions.nbytes))
-    # Bind the index buffer
-    ebo = glGenBuffers(1)
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo)
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.nbytes, indices, GL_DYNAMIC_DRAW)
-    # Unbind the VBO and VAO
-    glBindBuffer(GL_ARRAY_BUFFER, 0)
-    glBindVertexArray(0)
+    # Make mesh
+    face_deform_mesh = mesh.Mesh(positions, colors, indices, textureID, "shaders/facedeformv.glsl", "shaders/facedeformf.glsl")
 
 def update():
-    global vbo, vao, ebo, shader_program, face_deform_x, face_deform_y
-    # Enable Shader
-    glUseProgram(shader_program)
-    # Set Uniform Resolution
-    iResolution_id = glGetUniformLocation(shader_program, "iResolution")
-    glUniform2f(iResolution_id, 720, 720)
-    # Set Uniform Texture
-    textureUniformLoc = glGetUniformLocation(shader_program, "iChannel0")
-    glActiveTexture(GL_TEXTURE0)
-    glBindTexture(GL_TEXTURE_2D, textureID)
-    glUniform1i(textureUniformLoc, 0)
+    global face_deform_mesh
+    global face_deform_x, face_deform_y
     # Generate Vertices
     positions, colors, indices = generate_points(face_deform_x,face_deform_y)
-    # Bind Buffer, Set Position SubData, and Draw Elements
-    glBindVertexArray(vao)
-    glBindBuffer(GL_ARRAY_BUFFER, vbo)
-    glBufferSubData(GL_ARRAY_BUFFER, 0, positions.nbytes, positions)
-    glDrawElements(GL_TRIANGLES, len(indices), GL_UNSIGNED_INT, None)
-    # Unbind Vertex Array and Buffer
-    glBindVertexArray(0)
-    glBindBuffer(GL_ARRAY_BUFFER, 0)
+    # Set Position SubData, and Draw Elements
+    face_deform_mesh.update_positions(positions)
+    face_deform_mesh.draw()
 
 def close():
-    glDeleteProgram(shader_program)
-    glDeleteBuffers(1, [vbo])
-    glDeleteVertexArrays(1, [vao])
+    face_deform_mesh.delete()
