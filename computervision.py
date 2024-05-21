@@ -91,11 +91,26 @@ def update():
         cv.circle(frame, iris_left_pos, int(left_iris_radius), (255,0,255), 1, cv.LINE_AA)
         cv.circle(frame, iris_right_pos, int(right_iris_radius), (255,255,0), 1, cv.LINE_AA)
         
+        # eyelid_(left/right)_y should give values from 0.0 to 1.0
+        # may need to adjust, note that the raw ratio values before subtraction/multiplication is from 0.1 to 0.4
+        eye_left_length = abs(mesh_pts[133][0] - mesh_pts[33][0])
+        eye_right_length = abs(mesh_pts[362][0] - mesh_pts[263][0])
+        eyelid_left_y = ((abs(mesh_pts[159][1] - mesh_pts[145][1]) / eye_left_length) - 0.1) * 3.3
+        eyelid_right_y = ((abs(mesh_pts[374][1] - mesh_pts[386][1]) / eye_right_length) - 0.1) * 3.3
+    
+        # iris
+        # note for y get difference between iris y and eye left/right center y..
+        # get normalized values..
+        eye_left_center = (mesh_pts[133] + mesh_pts[33]) / 2.0
+        eye_right_center = (mesh_pts[362] + mesh_pts[263]) / 2.0
+
+        # Mouth
         mouth_pts = mesh_pts[[80, 88, 310, 318]]
         mouth_x = abs(mouth_pts[0][0] - mouth_pts[2][0])
         mouth_y = abs(mesh_pts[13][1] - mesh_pts[14][1])
         # Data Output
-        print("Mouth X: " + str(mouth_x) + ", Mouth Y: " + str(mouth_y) + ",Torso Angle : " + str(int(shoulder_angle)) + ", Face X: " + str(int(head_angle_x)) + ", Face Y: " + str(int(head_angle_y)) + ", Face Z: " + str(int(head_angle_z)))
+        print("Eyelid: " + str(eyelid_left_y) + ", " + str(eyelid_right_y))
+        #print("Mouth X: " + str(mouth_x) + ", Mouth Y: " + str(mouth_y) + ",Torso Angle : " + str(int(shoulder_angle)) + ", Face X: " + str(int(head_angle_x)) + ", Face Y: " + str(int(head_angle_y)) + ", Face Z: " + str(int(head_angle_z)))
         
         cv.imshow('img', frame)
     else:

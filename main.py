@@ -39,7 +39,6 @@ computervision.end()
 computergraphics.end()
 
 """
-
 import computergraphics
 
 computergraphics.start()
