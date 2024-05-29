@@ -96,6 +96,7 @@ def update():
         # iris
         # note for y get difference between iris y and eye left/right center y..
         # get normalized values..
+        # note that iris_right_pos is left pos because flipped (depending on audience view or no)
         eye_left_center = (mesh_pts[133] + mesh_pts[33]) / 2.0
         eye_right_center = (mesh_pts[362] + mesh_pts[263]) / 2.0
         (left_iris_cx, left_iris_cy), left_iris_radius = cv.minEnclosingCircle(mesh_pts[[474,475, 476, 477]])
@@ -104,13 +105,19 @@ def update():
         iris_right_pos = np.array([right_iris_cx, right_iris_cy], dtype=np.int32)
         cv.circle(frame, iris_left_pos, int(left_iris_radius), (255,0,255), 1, cv.LINE_AA)
         cv.circle(frame, iris_right_pos, int(right_iris_radius), (255,255,0), 1, cv.LINE_AA)
-        iris_left_normalized = (iris_left_pos - eye_left_center) / 1
-        iris_right_normalized = (iris_right_pos - eye_right_center) / 1
+        iris_left_normalized = (iris_right_pos - eye_left_center) / 1
+        iris_right_normalized = (iris_left_pos - eye_right_center) / 1
 
         # Mouth
         mouth_pts = mesh_pts[[80, 88, 310, 318]]
         mouth_x = abs(mouth_pts[0][0] - mouth_pts[2][0])
         mouth_y = abs(mesh_pts[13][1] - mesh_pts[14][1])
+
+        # Eyebrow, note that if you aren't getting strong results replace the points with a different portion of the eyebrow.
+        eyebrow_left = (mesh_pts[105][1] - mesh_pts[104][1]) / abs(mesh_pts[104][1] - mesh_pts[103][1])
+        eyebrow_right = (mesh_pts[334][1] - mesh_pts[333][1]) / abs(mesh_pts[333][1] - mesh_pts[332][1])
+        
+        # NOTE TO SELF NORMALIZE THE MOUTH DATA
         # Data Output
         print("EyeLeft: " + str(round(iris_left_normalized[0], 2)) + ", " + str(round(iris_left_normalized[1], 2)) + ": EyeRight: " + str(round(iris_right_normalized[0], 2)) + ", " + str(round(iris_right_normalized[1], 2)))
         #print("Mouth X: " + str(mouth_x) + ", Mouth Y: " + str(mouth_y) + ",Torso Angle : " + str(int(shoulder_angle)) + ", Face X: " + str(int(head_angle_x)) + ", Face Y: " + str(int(head_angle_y)) + ", Face Z: " + str(int(head_angle_z)))

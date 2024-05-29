@@ -52,8 +52,22 @@ def generate_points(x, y):
 
 def start():
     global face_deform_mesh
+    global left_eye_mesh
+    global left_eyelid_mesh
+    global left_iris_mesh
+    global right_eye_mesh
+    global right_eyelid_mesh
+    global right_iris_mesh
     # Import Texture
     textureID = texture.read_texture("GawrGura.png")
+
+    texture_L_eye_half = texture.read_texture("assets/L eye 0.6.png")
+    texture_L_eye_full = texture.read_texture("assets/L eye 1.0.png")
+    # keep going for all assets...
+    # also make sure to set the min and max stuff for uv..
+    # and also make sure there is a fully blank transparent png for the eye 0.0.png
+    # ok cool have fun coding! YOU CAN DO THIS
+
     # Generate Vertexes
     positions, colors, indices = generate_points(0.0,0.0)
     # Make mesh
@@ -62,6 +76,12 @@ def start():
 def update():
     global face_deform_mesh
     global face_deform_x, face_deform_y
+    global left_eye_openness
+    global right_eye_openness
+    global mouth_openness_x
+    global mouth_openness_y
+    global left_iris_x, left_iris_y
+    global right_iris_x, right_iris_y
     # Generate Vertices
     positions, colors, indices = generate_points(face_deform_x,face_deform_y)
     # Set Position SubData, and Draw Elements
