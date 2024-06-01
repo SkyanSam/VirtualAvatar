@@ -141,7 +141,7 @@ def update():
     R_pupil_mesh.uv_end = uv_end + np.array([right_iris_x * iris_uv_offset, right_iris_y * iris_uv_offset])
 
     # Set Position SubData, and Draw Elements
-    facemeshes = [L_pupil_mesh, L_eyelid_mesh, L_eye_mesh, R_pupil_mesh, R_eyelid_mesh, R_eye_mesh, face_deform_mesh]
+    facemeshes = [L_pupil_mesh, L_eyelid_mesh, L_eye_mesh, R_pupil_mesh, R_eyelid_mesh, R_eye_mesh, face_deform_mesh] # note may want to adjust draw order..
     for m in facemeshes:
         m.update_positions(positions)
         m.draw()
