@@ -1,12 +1,15 @@
 import texture
+import numpy as np
 from OpenGL.GL import *
 from OpenGL.GL.shaders import compileShader, compileProgram
 class Mesh:
-    def __init__(self, positions, colors, indices, texture_id, shader_vs_filename, shader_fs_filename):
+    def __init__(self, positions, colors, indices, texture_id, start_uv, end_uv, shader_vs_filename, shader_fs_filename):
         self.positions = positions
         self.colors = colors
         self.indices = indices
         self.textureID = texture_id
+        self.uv_start = start_uv
+        self.uv_end = end_uv
         self.shader_program = compileProgram(
             compileShader(open(shader_vs_filename, "r").read(), GL_VERTEX_SHADER),
             compileShader(open(shader_fs_filename, "r").read(), GL_FRAGMENT_SHADER),
@@ -74,6 +77,11 @@ class Mesh:
         glActiveTexture(GL_TEXTURE0)
         glBindTexture(GL_TEXTURE_2D, self.textureID)
         glUniform1i(textureUniformLoc, 0)
+        # Set Min/Max UV Coordinates
+        uvMinLoc = glGetUniformLocation(self.shader_program, "uv_start")
+        uvMaxLoc = glGetUniformLocation(self.shader_program, "uv_end")
+        glUniform2f(uvMinLoc, self.uv_start[0], self.uv_start[1])
+        glUniform2f(uvMaxLoc, self.uv_end[0], self.uv_end[1])
         # Draw Mesh
         glBindVertexArray(self.vao)
         glBindBuffer(GL_ARRAY_BUFFER, self.vbo)
