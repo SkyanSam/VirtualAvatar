@@ -17,9 +17,10 @@ void main()
     //fragColor = vec4(mod(uv.x, 1.0 / 8.0) ,mod(uv.y, 1.0 / 8.0), 0.0, 1.0);
 
     // interpolation
-    uv.x = mix(uv_start.x, uv_end.x, uv.x);
-    uv.y = mix(uv_start.y, uv_end.y, uv.y);
-    fragColor = texture(iChannel0, uv);
+    vec2 new_uv = vec2(0,0);
+    new_uv.x = mix(uv_start.x, uv_end.x, uv.x);
+    new_uv.y = mix(uv_start.y, uv_end.y, uv.y);
+    fragColor = texture(iChannel0, new_uv);
     // handling transparency
     if (fragColor.a < 0.5) discard;
     /*if (fragColor == vec4(0.0,0.0,0.0,0.0)) {

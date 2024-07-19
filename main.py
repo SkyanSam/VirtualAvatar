@@ -32,6 +32,7 @@ while computervision.is_window_open() and computergraphics.is_window_open():
     face_deform_x_delta = temp_face_deform_x - computergraphics.face_deform_x
     computergraphics.face_deform_y = temp_face_deform_y
     computergraphics.face_deform_x = temp_face_deform_x
+    computergraphics.face_expression_data = computervision.face_expression_data
 
     computergraphics.update()
     

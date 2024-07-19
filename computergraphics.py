@@ -10,6 +10,7 @@ gl_window = None
 
 face_deform_x = 0.0
 face_deform_y = 0.0
+face_expression_data = None
 
 def start():
     global gl_window
@@ -23,7 +24,7 @@ def start():
     glfw.set_window_pos(gl_window, 400, 200)
     glfw.make_context_current(gl_window)
 
-    glClearColor(0,0.05,0.05,1)
+    glClearColor(0.9,1.0,1.0,1)
 
     facedeform.start()
 
@@ -37,7 +38,7 @@ def update():
 
     facedeform.face_deform_x = lerp.lerp2_1d(facedeform.face_deform_x,face_deform_x,0.5)
     facedeform.face_deform_y = lerp.lerp2_1d(facedeform.face_deform_y,face_deform_y,0.5)
-
+    facedeform.face_expression_data = face_expression_data
     #facedeform.face_deform_x = math.sin(time.time())
     #facedeform.face_deform_y = math.cos(time.time())
     facedeform.update()

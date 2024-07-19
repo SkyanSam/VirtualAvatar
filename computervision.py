@@ -4,7 +4,9 @@ import numpy as np
 import mediapipe as mp
 import rotation_debug
 import headposeestimation
+from faceexpressiondata import *
 
+face_expression_data = None
 face_x_angle = 0.0
 head_angle_x = 0.0
 head_angle_y = 0.0
@@ -27,12 +29,17 @@ def is_window_open():
     return cap.isOpened() and cv.waitKey(1) != ord('q')
 
 def update():
+    # Mediapipe
     global cap
     global mp_drawing
     global mp_holistic
     global holistic
+    # Necessary Positions & Rotation Values
     global face_x_angle
     global head_angle_x, head_angle_y, head_angle_z
+    global shoulder_angle
+    global face_expression_data
+
     ret, frame = cap.read()
     if not ret:
         print("CV RETURNING not ret")
@@ -90,6 +97,7 @@ def update():
         # may need to adjust, note that the raw ratio values before subtraction/multiplication is from 0.1 to 0.4
         eye_left_length = abs(mesh_pts[133][0] - mesh_pts[33][0])
         eye_right_length = abs(mesh_pts[362][0] - mesh_pts[263][0])
+        eye_overall_length = (eye_left_length + eye_right_length) / 2.0
         eyelid_left_y = ((abs(mesh_pts[159][1] - mesh_pts[145][1]) / eye_left_length) - 0.1) * 3.3
         eyelid_right_y = ((abs(mesh_pts[374][1] - mesh_pts[386][1]) / eye_right_length) - 0.1) * 3.3
 
@@ -105,13 +113,14 @@ def update():
         iris_right_pos = np.array([right_iris_cx, right_iris_cy], dtype=np.int32)
         cv.circle(frame, iris_left_pos, int(left_iris_radius), (255,0,255), 1, cv.LINE_AA)
         cv.circle(frame, iris_right_pos, int(right_iris_radius), (255,255,0), 1, cv.LINE_AA)
+        # note, we flip the left and right data here. (may want to reconsider this behaviour)
         iris_left_normalized = (iris_right_pos - eye_left_center) / 1
         iris_right_normalized = (iris_left_pos - eye_right_center) / 1
 
         # Mouth
         mouth_pts = mesh_pts[[80, 88, 310, 318]]
-        mouth_x = abs(mouth_pts[0][0] - mouth_pts[2][0])
-        mouth_y = abs(mesh_pts[13][1] - mesh_pts[14][1])
+        mouth_x = abs(mouth_pts[0][0] - mouth_pts[2][0]) / eye_overall_length
+        mouth_y = abs(mesh_pts[13][1] - mesh_pts[14][1]) / eye_overall_length
 
         # Eyebrow, note that if you aren't getting strong results replace the points with a different portion of the eyebrow.
         eyebrow_left = (mesh_pts[105][1] - mesh_pts[104][1]) / abs(mesh_pts[104][1] - mesh_pts[103][1])
@@ -119,9 +128,21 @@ def update():
         
         # NOTE TO SELF NORMALIZE THE MOUTH DATA
         # Data Output
-        print("EyeLeft: " + str(round(iris_left_normalized[0], 2)) + ", " + str(round(iris_left_normalized[1], 2)) + ": EyeRight: " + str(round(iris_right_normalized[0], 2)) + ", " + str(round(iris_right_normalized[1], 2)))
-        #print("Mouth X: " + str(mouth_x) + ", Mouth Y: " + str(mouth_y) + ",Torso Angle : " + str(int(shoulder_angle)) + ", Face X: " + str(int(head_angle_x)) + ", Face Y: " + str(int(head_angle_y)) + ", Face Z: " + str(int(head_angle_z)))
+        #print("EyeLeft: " + str(round(iris_left_normalized[0], 2)) + ", " + str(round(iris_left_normalized[1], 2)) + ": EyeRight: " + str(round(iris_right_normalized[0], 2)) + ", " + str(round(iris_right_normalized[1], 2)))
+        print("Mouth X: " + str(mouth_x) + ", Mouth Y: " + str(mouth_y) + ",Torso Angle : " + str(int(shoulder_angle)) + ", Face X: " + str(int(head_angle_x)) + ", Face Y: " + str(int(head_angle_y)) + ", Face Z: " + str(int(head_angle_z)))
         
+        face_expression_data = FaceExpressionData(
+            eyebrow_left = eyebrow_left,
+            eyebrow_right = eyebrow_right,
+            left_eye_open = eyelid_left_y,
+            right_eye_open = eyelid_right_y,
+            left_iris_x = iris_left_normalized[0],
+            left_iris_y = iris_left_normalized[1],
+            right_iris_x = iris_right_normalized[0],
+            right_iris_y = iris_right_normalized[1],
+            mouth_open_x = mouth_x,
+            mouth_open_y = mouth_y
+        )
         cv.imshow('img', frame)
     else:
         print("no landmarks for cv")
